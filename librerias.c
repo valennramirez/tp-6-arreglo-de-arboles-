@@ -36,6 +36,21 @@ void mostrarArchivoRegistros (char nombreArchivo[])
     }
 }
 
+void mostrarArchivoAnimal (char nombreArchivo[])
+{
+    FILE *archivo=fopen(nombreArchivo, "rb");
+    nodoArbol *aux;
+
+    if(archivo!=NULL)
+    {
+        while (fread(aux, sizeof(nodoArbol), 1, archivo)>0)
+        {
+            mostrarNodoArbol(aux);
+        }
+
+        fclose(archivo);
+    }
+}
 /// arboles
 
 nodoArbol *inicarbol ()
@@ -78,6 +93,23 @@ nodoArbol *insertar (nodoArbol *arbol, nodoArbol *nn)
     return arbol;
 }
 
+void mostrarNodoArbol (nodoArbol *nn)
+{
+    printf ("Nombre animal: %s\n", nn->dato.nombreAnimal);
+    printf ("Cantidad: %d\n", nn->dato.cantidad);
+    printf ("Habitat: %d\n", nn->dato.habitat);
+}
+
+void mostrarPreorden (nodoArbol *arbol)
+{
+    if (arbol!=NULL)
+    {
+        mostrarNodoArbol(arbol);
+        mostrarPreorden (arbol->izq);
+        mostrarPreorden (arbol->der);
+    }
+}
+
 ///arreglo de arboles
 
 int buscarPosEspecie (celda ada[], char especie[], int validos)
@@ -91,14 +123,38 @@ int buscarPosEspecie (celda ada[], char especie[], int validos)
         {
             rta=i;
         }
-
         i++;
     }
 
     return rta;
 }
+int agregarEspecie (celda ada[], char especie[], int validos)
+{
+    strcpy(ada[validos].especie, especie);
+    ada[validos].idEspecie=validos;
+    ada[validos].arbolDeAnimales=inicarbol();
 
+    validos++;
 
+    return validos;
+}
+
+int alta (celda ada[], char especie[], char nombreAnimal[], int habitat, int cantidad, int validos)
+{
+    nodoArbol *aux=crearNodo(nombreAnimal, cantidad, habitat);
+
+    int pos=buscarPosEspecie(ada, especie, validos);
+
+    if (pos==-1)
+    {
+        validos=agregarEspecie(ada, especie, validos);
+        pos=validos-1;
+    }
+
+    ada[pos].arbolDeAnimales=insertar(ada[pos].arbolDeAnimales, aux);
+
+    return validos;
+}
 
 ///funciones para el tp
 
@@ -113,10 +169,42 @@ int pasarDeArchivoToADA (celda ada[], int dimension, char nombreArchivo[])
     {
         while (fread(&aux, sizeof(registroArchivo), 1, archivo)>0 && validos<dimension)
         {
-           mostrarArchivoRegistros("animales.dat");
+
+
+            validos=alta(ada, aux.especie, aux.animal, aux.habitat, aux.cant, validos);
         }
         fclose(archivo);
     }
 
     return validos;
+}
+
+void pasarArbolToArchivo (char nombreArchivo[], nodoArbol *arbol)
+{
+    FILE *archivo=fopen(nombreArchivo, "wb");
+
+    if(archivo!=NULL)
+    {
+        while(arbol!=NULL)
+        {
+            pasarArbolToArchivo(nombreArchivo, arbol->izq);
+
+            fwrite(arbol, sizeof(nodoArbol), 1, archivo);
+        }
+
+        fclose(archivo);
+    }
+}
+
+void pasarAdaToArchivo (celda ada[], int validos)
+{
+    int i=0;
+
+    while (i<validos)
+    {
+        pasarArbolToArchivo(ada[i].especie, ada[i].arbolDeAnimales->izq);
+        pasarAdaToArchivo(ada[i].especie, ada[i].arbolDeAnimales->der);
+
+        i++;
+    }
 }

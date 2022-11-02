@@ -2,11 +2,12 @@
 #define LIBRERIAS_H_INCLUDED
 
 typedef struct {
-   char animal[30];
-   int cant;
-   int habitat;
-   int idEspecie;
    char especie[20];
+   char animal[30];
+   int habitat;
+   int cant;
+   int idEspecie;
+
 } registroArchivo;
 
 typedef struct {
@@ -24,7 +25,7 @@ typedef struct
 typedef struct
 {
    int idEspecie;
-   char especie [20];// "Mamiferos", "Aves" // "Reptiles", "Peces",”Anfibios”
+   char especie [50];// "Mamiferos", "Aves" // "Reptiles", "Peces",”Anfibios”
    nodoArbol * arbolDeAnimales;
 } celda;
 
